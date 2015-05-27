@@ -11,11 +11,6 @@ var gAPIKey = "632EDF23098CDBB4E13564B96831FD34"
 // GetMatchHistoryResponse -
 func GetMatchHistoryResponse(matchesRequested int) *MatchHistoryResponse {
 	var baseURI = "https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/v001/"
-	/*var query = map[string]interface{}{
-		"key":               gAPIKey,
-		"matches_requested": matchesRequested,
-	}*/
-
 	query := struct {
 		Key              string `url:"key"`
 		MatchesRequested int    `url:"matches_requested"`
@@ -94,6 +89,31 @@ func GetHeroesResponse(language string) *HeroesResponse {
 	return &responseObj
 }
 
+// GetLeaguesResponse -
+func GetLeaguesResponse() *LeaguesResponse {
+	var baseURI = "https://api.steampowered.com/IDOTA2Match_570/GetLeagueListing/v0001/"
+	query := struct {
+		Key string `url:"key"`
+	}{
+		gAPIKey,
+	}
+
+	res, err := goreq.Request{
+		Uri:         baseURI,
+		QueryString: query,
+	}.Do()
+
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+
+	var responseObj LeaguesResponse
+	res.Body.FromJsonTo(&responseObj)
+
+	return &responseObj
+}
+
 // MatchHistoryResponse -
 type MatchHistoryResponse struct {
 	Result struct {
@@ -105,7 +125,7 @@ type MatchHistoryResponse struct {
 
 // MatchHistory -
 type MatchHistory struct {
-	MatchID   int `json:"match_id"`
+	ID        int `json:"match_id"`
 	StartTime int `json:"start_time"`
 }
 
@@ -182,4 +202,20 @@ type PickBanDetails struct {
 	HeroID int  `json:"hero_id"`
 	Team   int  `json:"team"`
 	Order  int  `json:"order"`
+}
+
+// LeaguesResponse -
+type LeaguesResponse struct {
+	Result struct {
+		Leagues []LeagueDetails `json:"leagues"`
+	}
+}
+
+// LeagueDetails -
+type LeagueDetails struct {
+	ID            int    `json:"leagueid"`
+	Name          string `json:"name"`
+	Description   string `json:"description"`
+	TournamentURL string `json:"tournament_url"`
+	ItemDef       int    `json:"itemdef"`
 }

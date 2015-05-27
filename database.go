@@ -24,6 +24,24 @@ func initializeDatabase(host string, username string, password string, database 
 	return nil
 }
 
+func exists(table string, field string, test interface{}) *string {
+	res, err := r.Table(table).Filter(r.Row.Field(field).Eq(test)).Run(gSession)
+
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+
+	var existing *Base
+	res.One(existing)
+
+	if existing != nil {
+		return &existing.ID
+	}
+
+	return nil
+}
+
 func insertHero(hero Hero) {
 	// Check if hero is inserted already
 	res, err := r.Table("Heroes").Filter(r.Row.Field("hero_id").Eq(hero.HeroID)).Run(gSession)
@@ -51,19 +69,35 @@ func insertHero(hero Hero) {
 	}
 }
 
+func insertLeague(league League) {
+
+}
+
 /*********** Models *************/
+
+// Base -
+type Base struct {
+	ID string `gorethink:"id,omitempty"`
+}
 
 // Hero -
 type Hero struct {
-	ID     string `gorethink:"id,omitempty"`
+	Base
 	HeroID int    `gorethink:"hero_id"`
 	Name   string `gorethink:"name"`
 }
 
+// League -
+type League struct {
+	Base
+	LeagueID int    `gorethink:"league_id"`
+	Name     string `gorethink:"name"`
+	Observed bool   `gorethink:"observed"`
+}
+
 // Match -
 type Match struct {
-	ID          string    `gorethink:"id,omitempty"`
-	MatchID     int       `gorethink:"match_id"`
+	Base
 	LeagueID    int       `gorethink:"league_id"`
 	Processed   bool      `gorethink:"processed"`
 	ProcessedAt time.Time `gorethink:"processed_at"`
@@ -71,17 +105,10 @@ type Match struct {
 
 // HeroScore -
 type HeroScore struct {
-	ID      string `gorethink:"id,omitempty"`
-	MatchID int    `gorethink:"match_id"`
-	HeroID  int    `gorethink:"hero_id"`
-	Score   int    `gorethink:"score"`
-}
-
-// League -
-type League struct {
-	ID       string `gorethink:"id,omitempty"`
-	LeagueID int    `gorethink:"league_id"`
-	Observed bool   `gorethink:"observed"`
+	Base
+	MatchID int `gorethink:"match_id"`
+	HeroID  int `gorethink:"hero_id"`
+	Score   int `gorethink:"score"`
 }
 
 /*
