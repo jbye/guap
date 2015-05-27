@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/jbye/guap/dota"
@@ -14,64 +13,46 @@ import (
 )
 
 var gLeagueID = "2733"
-var gHeroesInterval time.Duration = 15 * 1000
-var gLeaguesInterval time.Duration = 30 * 1000
+var gMatchHistoryInterval time.Duration = 5 * 1000
 var gMatchesInterval time.Duration = 12222222 * 60
 
+// -
+var WorkQueue = make(chan WorkRequest, 100)
+
 func main() {
-	err := initializeDatabase("nas1.local:28015", "", "", "heroes")
+	loadConfig()
+
+	err := initializeDatabase(Config.Rethink.Host, Config.Rethink.Database)
 
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
 
-	// Heroes
-	heroesChan := time.NewTicker(time.Millisecond * gHeroesInterval).C
-	leaguesChan := time.NewTicker(time.Millisecond * gLeaguesInterval).C
-	matchHistoryChan := time.NewTicker(time.Millisecond * gMatchesInterval).C
-	doneChan := make(chan bool)
+	StartDispatcher(4)
 
-	var heroesWg sync.WaitGroup
+	heroesChan := time.NewTicker(time.Millisecond * Config.Intervals.Heroes).C
+	leaguesChan := time.NewTicker(time.Millisecond * Config.Intervals.Leagues).C
 
 	for {
 		select {
 		case <-heroesChan:
-			go func() {
-				processHeroes()
-				defer heroesWg.Done()
-			}()
+			WorkQueue <- WorkRequest{
+				Name:  "Heroes request",
+				Delay: 100,
+			}
 		case <-leaguesChan:
-			go processLeagues()
-		case <-matchHistoryChan:
-			fmt.Println("Checking matches")
-		case <-doneChan:
-			fmt.Println("Done")
+			WorkQueue <- WorkRequest{
+				Name:  "League request",
+				Delay: 100,
+			}
 		}
 	}
-
-	/*
-
-		leagues := []string{"2733"}
-
-		for _, leagueID := range leagues {
-			fmt.Printf("Running for leagueID: %s\n", leagueID)
-		}
-
-		var leaguesResponse = dota.GetLeaguesResponse()
-		for _, league := range leaguesResponse.Result.Leagues {
-			fmt.Printf("LeagueName: %s\n", league.Name)
-		}*/
-
-	//historyChan := make(chan Match)
-
-	//processMatchHistory()
-	//processHeroes()
 }
 
 func processHeroes() {
 	logger.Info("Started processing heroes")
 
-	var heroesResponse = dota.GetHeroesResponse("en_us")
+	var heroesResponse = dota.GetHeroesResponse(Config.Steam.Key, "en_us")
 
 	for _, heroVO := range heroesResponse.Result.Heroes {
 		hero := Hero{
@@ -88,7 +69,7 @@ func processHeroes() {
 func processLeagues() {
 	logger.Info("Started processing leagues")
 
-	var leaguesResponse = dota.GetLeaguesResponse()
+	var leaguesResponse = dota.GetLeaguesResponse(Config.Steam.Key)
 
 	for _, leagueVO := range leaguesResponse.Result.Leagues {
 		league := League{
@@ -103,12 +84,12 @@ func processLeagues() {
 }
 
 func processMatchHistory() {
-	var matchHistoryResponse = dota.GetMatchHistoryResponse(3)
+	var matchHistoryResponse = dota.GetMatchHistoryResponse(Config.Steam.Key, 3)
 
 	fmt.Printf("Num results: %d\n", matchHistoryResponse.Result.NumResults)
 
 	for _, matchHistory := range matchHistoryResponse.Result.Matches {
-		var matchDetails = dota.GetMatchDetailsResponse(matchHistory.ID)
+		var matchDetails = dota.GetMatchDetailsResponse(Config.Steam.Key, matchHistory.ID)
 		fmt.Printf("MatchDetails: %s\n", strconv.FormatBool(matchDetails.Result.RadiantWin))
 	}
 }

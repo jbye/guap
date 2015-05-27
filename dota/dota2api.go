@@ -6,16 +6,14 @@ import (
 	"github.com/franela/goreq"
 )
 
-var gAPIKey = "632EDF23098CDBB4E13564B96831FD34"
-
 // GetMatchHistoryResponse -
-func GetMatchHistoryResponse(matchesRequested int) *MatchHistoryResponse {
+func GetMatchHistoryResponse(key string, matchesRequested int) *MatchHistoryResponse {
 	var baseURI = "https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/v001/"
 	query := struct {
 		Key              string `url:"key"`
 		MatchesRequested int    `url:"matches_requested"`
 	}{
-		gAPIKey,
+		key,
 		matchesRequested,
 	}
 
@@ -36,13 +34,13 @@ func GetMatchHistoryResponse(matchesRequested int) *MatchHistoryResponse {
 }
 
 // GetMatchDetailsResponse -
-func GetMatchDetailsResponse(matchID int) *MatchDetailsResponse {
+func GetMatchDetailsResponse(key string, matchID int) *MatchDetailsResponse {
 	var baseURI = "https://api.steampowered.com/IDOTA2Match_570/GetMatchDetails/V001/"
 	query := struct {
 		Key     string `url:"key"`
 		MatchID int    `url:"match_id"`
 	}{
-		gAPIKey,
+		key,
 		matchID,
 	}
 
@@ -63,13 +61,13 @@ func GetMatchDetailsResponse(matchID int) *MatchDetailsResponse {
 }
 
 // GetHeroesResponse -
-func GetHeroesResponse(language string) *HeroesResponse {
+func GetHeroesResponse(key string, language string) *HeroesResponse {
 	var baseURI = "https://api.steampowered.com/IEconDOTA2_570/GetHeroes/v0001/"
 	query := struct {
 		Key      string `url:"key"`
 		Language string `url:"language"`
 	}{
-		gAPIKey,
+		key,
 		"en_us",
 	}
 
@@ -90,12 +88,12 @@ func GetHeroesResponse(language string) *HeroesResponse {
 }
 
 // GetLeaguesResponse -
-func GetLeaguesResponse() *LeaguesResponse {
+func GetLeaguesResponse(key string) *LeaguesResponse {
 	var baseURI = "https://api.steampowered.com/IDOTA2Match_570/GetLeagueListing/v0001/"
 	query := struct {
 		Key string `url:"key"`
 	}{
-		gAPIKey,
+		key,
 	}
 
 	res, err := goreq.Request{

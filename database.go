@@ -9,7 +9,7 @@ import (
 
 var gSession *r.Session
 
-func initializeDatabase(host string, username string, password string, database string) error {
+func initializeDatabase(host string, database string) error {
 	var err error
 	gSession, err = r.Connect(r.ConnectOpts{
 		Address:  host,

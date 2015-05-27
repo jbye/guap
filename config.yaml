@@ -1,0 +1,8 @@
+intervals:
+  leagues: 3000
+  heroes: 5000
+rethink:
+  host: "nas1.local:28015"
+  database: "heroes"
+steam:
+  key: "632EDF23098CDBB4E13564B96831FD34"
