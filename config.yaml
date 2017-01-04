@@ -5,4 +5,4 @@ rethink:
   host: "nas1.local:28015"
   database: "heroes"
 steam:
-  key: "632EDF23098CDBB4E13564B96831FD34"
+  key: ""
